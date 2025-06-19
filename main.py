@@ -1,4 +1,3 @@
-import os
 import json
 import openai
 from adapters.market_data import CoinLoreMarketDataAdapter
