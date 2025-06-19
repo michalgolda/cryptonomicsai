@@ -1,16 +1,12 @@
-from enum import StrEnum
+from constants.asset import Asset
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
-
-class Asset(StrEnum):
-    BTC = "BTC"
-    ETH = "ETH"
 
 
 @dataclass(frozen=True)
 class GeneralAssetMetadata:
     name: str
+    market_cap: float
     total_supply: float
     circulating_supply: float
 

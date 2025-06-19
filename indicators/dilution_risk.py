@@ -22,4 +22,4 @@ def dilution_risk_indicator(
     },
 ) -> DilutionRiskLevel:
     circulating_supply_ratio = round(circulating_supply / total_supply, 2)
-    return next(v.value for v, c in thresholds.items() if c(circulating_supply_ratio))
+    return next(v for v, c in thresholds.items() if c(circulating_supply_ratio))
