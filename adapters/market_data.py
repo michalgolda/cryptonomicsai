@@ -27,6 +27,7 @@ class CoinLoreMarketDataAdapter(MarketDataPort):
 
         return GeneralAssetMetadata(
             name=res.get("name"),
+            price=round(float(res.get("price_usd")), 2),
             market_cap=round(float(res.get("market_cap_usd")), 2),
             total_supply=round(float(res.get("tsupply")), 2),
             circulating_supply=round(float(res.get("csupply")), 2),

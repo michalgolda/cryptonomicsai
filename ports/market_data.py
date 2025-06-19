@@ -6,6 +6,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class GeneralAssetMetadata:
     name: str
+    price: float
     market_cap: float
     total_supply: float
     circulating_supply: float
