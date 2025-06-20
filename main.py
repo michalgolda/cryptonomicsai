@@ -1,14 +1,18 @@
 import json
 import openai
+from firecrawl import FirecrawlApp
 from adapters.market_data import CoinLoreMarketDataAdapter
 from indicators.dilution_risk import dilution_risk_indicator
 from indicators.market_cap import market_cap_indicator
 from indicators.unit_price import unit_price_indicator
 from constants.asset import Asset
 from adapters.fng import AlternativeMeFNGSourceAdapter
+from adapters.community_sentiment import CoinMarketCapCommunitySentimentAdapter
+from ports import community_sentiment
 
 
 openai_client = openai.OpenAI()
+firecrawl = FirecrawlApp()
 
 
 def generate_summary(data: dict) -> str:
@@ -33,9 +37,11 @@ def generate_summary(data: dict) -> str:
 def main():
     fng_source_adapter = AlternativeMeFNGSourceAdapter()
     market_data_adapter = CoinLoreMarketDataAdapter()
+    community_sentiment_adapter = CoinMarketCapCommunitySentimentAdapter(firecrawl)
 
-    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.TRX)
+    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.SUI)
     fng_data = fng_source_adapter.get_fng()
+    community_sentiment_data = community_sentiment_adapter.get(Asset.SUI)
 
     data = {
         "asset_specific": {
@@ -48,6 +54,10 @@ def main():
                 general_asset_metadata.total_supply,
                 general_asset_metadata.circulating_supply,
             ),
+            "community_sentiment": {
+                "bearish": community_sentiment_data.bearish,
+                "bullish": community_sentiment_data.bullish,
+            },
         },
         "general": {"fear_and_greed": fng_data.value_classification},
     }
