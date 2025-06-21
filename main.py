@@ -9,33 +9,14 @@ from adapters.community_sentiment import (
     CoinMarketCapCommunitySentimentAdapter,
     FailoverCommunitySentimentAdapter,
 )
+from ai import generate_summary
 from indicators.dilution_risk import dilution_risk_indicator
 from indicators.market_cap import market_cap_indicator
 from indicators.unit_price import unit_price_indicator
 from adapters.security_metrics import CoindeskSecurityMetricAdapter
 
 
-openai_client = openai.OpenAI()
 firecrawl = FirecrawlApp()
-
-
-def generate_summary(data: dict) -> str:
-    chat_completions = openai_client.chat.completions.create(
-        top_p=1,
-        temperature=0.3,
-        frequency_penalty=0.3,
-        presence_penalty=0.1,
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a world-class crypto expert specialising in writing report based on provided data by user. You should only write based on data provided by user, don't use any other data. Don't limit words, if you need to write a little more text, do it. Use simple language, the final user is a average human. If you are not confident, don't use information or claim. Based on historical data, the most appropriate moment for enter the crypto market is when fear and greed index indicate fear on market. Your answer should contain only conclusion based on all provided data.",
-            },
-            {"role": "user", "content": json.dumps(data)},
-        ],
-    )
-    summary = chat_completions.choices[0].message.content
-    return summary
 
 
 def main():
