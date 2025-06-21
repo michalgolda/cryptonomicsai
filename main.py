@@ -14,6 +14,7 @@ from indicators.dilution_risk import dilution_risk_indicator
 from indicators.market_cap import market_cap_indicator
 from indicators.unit_price import unit_price_indicator
 from adapters.security_metrics import CoindeskSecurityMetricAdapter
+from adapters.top_markets import DropsTabTopMarketsAdapter
 
 
 firecrawl = FirecrawlApp()
@@ -25,6 +26,7 @@ def main():
     coinmarketcap_community_sentiment_adapter = CoinMarketCapCommunitySentimentAdapter(
         firecrawl
     )
+    drops_tab_top_markets_adapter = DropsTabTopMarketsAdapter()
     coingecko_community_sentiment_adapter = CoinGeckoCommunitySentimentAdapter()
     failover_community_sentiment_adapter = FailoverCommunitySentimentAdapter(
         [
@@ -34,10 +36,11 @@ def main():
     )
     coindesk_security_metric_adapter = CoindeskSecurityMetricAdapter()
 
-    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.TRX)
+    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.BEAM)
     fng_data = fng_source_adapter.get_fng()
-    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.TRX)
-    security_metrics = coindesk_security_metric_adapter.get(Asset.TRX)
+    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.BEAM)
+    security_metrics = coindesk_security_metric_adapter.get(Asset.BEAM)
+    top_markets = drops_tab_top_markets_adapter.get(Asset.BEAM)
 
     data = {
         "asset_specific": {
@@ -59,6 +62,7 @@ def main():
             "security_metrics": [
                 {"name": m.name, "score": m.score} for m in security_metrics
             ],
+            "top_markets": [{"exchange_name": m.exchange_name} for m in top_markets],
         },
         "general": {"fear_and_greed": fng_data.value_classification},
     }
