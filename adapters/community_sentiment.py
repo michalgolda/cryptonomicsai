@@ -1,7 +1,9 @@
+import requests
+from typing import override
 from pydantic import BaseModel
 from firecrawl import FirecrawlApp, JsonConfig
 from ports.community_sentiment import CommunitySentimentPort, CommunitySentimentData
-from constants.asset import Asset
+from constants.asset import Asset, AssetName
 
 
 class FirecrawlExtractionSchema(BaseModel):
@@ -28,3 +30,23 @@ class CoinMarketCapCommunitySentimentAdapter(CommunitySentimentPort):
             bullish=extraction_result.json.get("bullish"),
             bearish=extraction_result.json.get("bearish"),
         )
+
+
+class CoinGeckoCommunitySentimentAdapter(CommunitySentimentPort):
+    def __get_asset_name(self, asset: Asset) -> str:
+        return AssetName[asset.value].value
+
+    @override
+    def get(self, asset: Asset) -> CommunitySentimentData:
+        asset_name = self.__get_asset_name(asset)
+        res = requests.get(
+            f"https://www.coingecko.com/sentiment_votes/voted_coin_today?api_symbol={asset_name}"
+        )
+        res = res.json()
+
+        return CommunitySentimentData(
+            bullish=int(res.get("percentage").get("positive")),
+            bearish=int(res.get("percentage").get("negative")),
+        )
+
+
