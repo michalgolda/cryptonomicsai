@@ -1,3 +1,4 @@
+from typing import List
 import requests
 from typing import override
 from pydantic import BaseModel
@@ -23,7 +24,7 @@ class CoinMarketCapCommunitySentimentAdapter(CommunitySentimentPort):
             only_main_content=True,
             include_tags=[".ratio"],
             mobile=True,
-            wait_for=2000,
+            wait_for=4000,
             json_options=json_config,
         )
         return CommunitySentimentData(
@@ -50,3 +51,16 @@ class CoinGeckoCommunitySentimentAdapter(CommunitySentimentPort):
         )
 
 
+class FailoverCommunitySentimentAdapter(CommunitySentimentPort):
+    def __init__(self, adapters: List[CommunitySentimentPort]) -> None:
+        self.__adapters = adapters
+
+    @override
+    def get(self, asset: Asset) -> CommunitySentimentData:
+        for adapter in self.__adapters:
+            try:
+                return adapter.get(asset)
+            except Exception as _:
+                continue
+
+        raise ValueError("All provided adapters failed.")

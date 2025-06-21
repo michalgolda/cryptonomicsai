@@ -2,13 +2,17 @@ import json
 import openai
 from firecrawl import FirecrawlApp
 from adapters.market_data import CoinLoreMarketDataAdapter
+from constants.asset import Asset
+from adapters.fng import AlternativeMeFNGSourceAdapter
+from adapters.community_sentiment import (
+    CoinGeckoCommunitySentimentAdapter,
+    CoinMarketCapCommunitySentimentAdapter,
+    FailoverCommunitySentimentAdapter,
+)
 from indicators.dilution_risk import dilution_risk_indicator
 from indicators.market_cap import market_cap_indicator
 from indicators.unit_price import unit_price_indicator
-from constants.asset import Asset
-from adapters.fng import AlternativeMeFNGSourceAdapter
-from adapters.community_sentiment import CoinMarketCapCommunitySentimentAdapter
-from ports import community_sentiment
+from ports.community_sentiment import CommunitySentimentData
 
 
 openai_client = openai.OpenAI()
@@ -37,23 +41,34 @@ def generate_summary(data: dict) -> str:
 def main():
     fng_source_adapter = AlternativeMeFNGSourceAdapter()
     market_data_adapter = CoinLoreMarketDataAdapter()
-    community_sentiment_adapter = CoinMarketCapCommunitySentimentAdapter(firecrawl)
+    coinmarketcap_community_sentiment_adapter = CoinMarketCapCommunitySentimentAdapter(
+        firecrawl
+    )
+    coingecko_community_sentiment_adapter = CoinGeckoCommunitySentimentAdapter()
+    failover_community_sentiment_adapter = FailoverCommunitySentimentAdapter(
+        [
+            coingecko_community_sentiment_adapter,
+            coinmarketcap_community_sentiment_adapter,
+        ]
+    )
 
     general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.SUI)
     fng_data = fng_source_adapter.get_fng()
-    community_sentiment_data = community_sentiment_adapter.get(Asset.SUI)
+    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.SUI)
 
     data = {
         "asset_specific": {
             "asset_name": general_asset_metadata.name,
-            "unit_price_category": unit_price_indicator(general_asset_metadata.price),
+            "unit_price_category": unit_price_indicator(
+                general_asset_metadata.price
+            ).value,
             "market_cap_category": market_cap_indicator(
                 general_asset_metadata.market_cap
-            ),
+            ).value,
             "dilution_risk": dilution_risk_indicator(
                 general_asset_metadata.total_supply,
                 general_asset_metadata.circulating_supply,
-            ),
+            ).value,
             "community_sentiment": {
                 "bearish": community_sentiment_data.bearish,
                 "bullish": community_sentiment_data.bullish,
