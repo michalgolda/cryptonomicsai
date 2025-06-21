@@ -12,6 +12,7 @@ class CoinLoreMarketDataAdapter(MarketDataPort):
             Asset.ETH: "80",
             Asset.TRX: "2713",
             Asset.SUI: "93845",
+            Asset.BEAM: "136107",
         }
         if asset not in assets:
             raise ValueError(f"Can not determine asset id of {asset.value}")
