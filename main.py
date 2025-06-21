@@ -12,7 +12,7 @@ from adapters.community_sentiment import (
 from indicators.dilution_risk import dilution_risk_indicator
 from indicators.market_cap import market_cap_indicator
 from indicators.unit_price import unit_price_indicator
-from ports.community_sentiment import CommunitySentimentData
+from adapters.security_metrics import CoindeskSecurityMetricAdapter
 
 
 openai_client = openai.OpenAI()
@@ -51,10 +51,12 @@ def main():
             coinmarketcap_community_sentiment_adapter,
         ]
     )
+    coindesk_security_metric_adapter = CoindeskSecurityMetricAdapter()
 
-    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.SUI)
+    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.TRX)
     fng_data = fng_source_adapter.get_fng()
-    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.SUI)
+    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.TRX)
+    security_metrics = coindesk_security_metric_adapter.get(Asset.TRX)
 
     data = {
         "asset_specific": {
@@ -73,6 +75,9 @@ def main():
                 "bearish": community_sentiment_data.bearish,
                 "bullish": community_sentiment_data.bullish,
             },
+            "security_metrics": [
+                {"name": m.name, "score": m.score} for m in security_metrics
+            ],
         },
         "general": {"fear_and_greed": fng_data.value_classification},
     }
