@@ -1,7 +1,6 @@
-import json
-import openai
 from firecrawl import FirecrawlApp
 from adapters.market_data import CoinLoreMarketDataAdapter
+from adapters.urls import CoinDeskUrlsAdapter
 from constants.asset import Asset
 from adapters.fng import AlternativeMeFNGSourceAdapter
 from adapters.community_sentiment import (
@@ -9,6 +8,7 @@ from adapters.community_sentiment import (
     CoinMarketCapCommunitySentimentAdapter,
     FailoverCommunitySentimentAdapter,
 )
+from adapters.urls import CoinDeskUrlsAdapter
 from ai import generate_summary
 from indicators.dilution_risk import dilution_risk_indicator
 from indicators.market_cap import market_cap_indicator
@@ -35,12 +35,14 @@ def main():
         ]
     )
     coindesk_security_metric_adapter = CoindeskSecurityMetricAdapter()
+    coindesk_urls_adapter = CoinDeskUrlsAdapter()
 
-    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.BEAM)
+    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.ETH)
     fng_data = fng_source_adapter.get_fng()
-    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.BEAM)
-    security_metrics = coindesk_security_metric_adapter.get(Asset.BEAM)
-    top_markets = drops_tab_top_markets_adapter.get(Asset.BEAM)
+    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.ETH)
+    security_metrics = coindesk_security_metric_adapter.get(Asset.ETH)
+    top_markets = drops_tab_top_markets_adapter.get(Asset.ETH)
+    urls = coindesk_urls_adapter.get(Asset.ETH)
 
     data = {
         "asset_specific": {
