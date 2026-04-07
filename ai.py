@@ -14,10 +14,25 @@ def generate_summary(data: dict) -> str:
         messages=[
             {
                 "role": "system",
-                "content": "You are a world-class crypto expert specialising in providing concise investment advice. Based on the data provided, deliver a single paragraph summary that analyzes current market conditions, sentiment, and trends. Use simple language for the average investor. Consider that historically, the most appropriate moment to enter the crypto market is when the fear and greed index indicates fear or extreme fear. Also note that coins available on top exchanges like Binance, Bybit, and Coinbase are generally more attractive for potential investors due to increased liquidity, trust, and accessibility. Your response should end with an objective assessment. If you don't have enough information to make a clear recommendation, state this explicitly. Only use the data provided and avoid making claims if you're not confident.",
+                "content": "You are a world-class crypto expert specialising in investment signals. Based on the data provided, return a BUY, SELL, or WAIT signal. Consider that historically, the most appropriate moment to enter the crypto market is when the fear and greed index indicates fear or extreme fear, and when the CBBI (Crypto Bull Bear Index) is BULLISH (value at or below 10), which historically signals market bottoms and prime buying opportunities. Coins available on top exchanges like Binance, Bybit, and Coinbase are generally more attractive due to increased liquidity and trust. Only use the data provided.",
             },
             {"role": "user", "content": json.dumps(data)},
         ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "investment_signal",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "signal": {"type": "string", "enum": ["BUY", "SELL", "WAIT"]},
+                        "summary": {"type": "string"},
+                    },
+                    "required": ["signal", "summary"],
+                    "additionalProperties": False,
+                },
+            },
+        },
     )
-    summary = chat_completions.choices[0].message.content
-    return summary
+    return json.loads(chat_completions.choices[0].message.content)

@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class FNGData:
-    value: float
+class CBBIData:
+    value: int
 
 
-class FNGSourcePort(ABC):
+class CBBISourcePort(ABC):
     @abstractmethod
-    def get_fng(self) -> FNGData:
+    def get_cbbi(self) -> CBBIData:
         pass

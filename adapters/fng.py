@@ -10,7 +10,4 @@ class AlternativeMeFNGSourceAdapter(FNGSourcePort):
         res = res.json()
         data = res.get("data")[0]
 
-        return FNGData(
-            value=float(data.get("value")),
-            value_classification=data.get("value_classification"),
-        )
+        return FNGData(value=float(data.get("value")))
