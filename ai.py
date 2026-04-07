@@ -1,10 +1,13 @@
 import json
 import openai
+from logger import get_logger
 
+logger = get_logger(__name__)
 openai_client = openai.OpenAI()
 
 
 def generate_summary(data: dict) -> str:
+    logger.info("Generating investment signal via OpenAI")
     chat_completions = openai_client.chat.completions.create(
         top_p=1,
         temperature=0.3,
@@ -35,4 +38,6 @@ def generate_summary(data: dict) -> str:
             },
         },
     )
-    return json.loads(chat_completions.choices[0].message.content)
+    result = json.loads(chat_completions.choices[0].message.content)
+    logger.info("Signal: %s", result["signal"])
+    return result

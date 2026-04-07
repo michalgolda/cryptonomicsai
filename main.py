@@ -1,4 +1,8 @@
+import typer
 from firecrawl import FirecrawlApp
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 from adapters.cbbi import ColinTalksCryptoCBBIAdapter
 from adapters.community_sentiment import (
@@ -18,10 +22,13 @@ from indicators.fng import fng_indicator
 from indicators.market_cap import market_cap_indicator
 from indicators.unit_price import unit_price_indicator
 
+app = typer.Typer()
 firecrawl = FirecrawlApp()
 
 
-def main():
+@app.command()
+def analyze(asset: Asset = typer.Argument(help="Asset ticker to analyze (e.g. BTC, ETH)")):
+    logger.info("Starting analysis for %s", asset.value)
     fng_source_adapter = AlternativeMeFNGSourceAdapter()
     market_data_adapter = CoinLoreMarketDataAdapter()
     coinmarketcap_community_sentiment_adapter = CoinMarketCapCommunitySentimentAdapter(
@@ -38,11 +45,11 @@ def main():
     coindesk_security_metric_adapter = CoindeskSecurityMetricAdapter()
     cbbi_adapter = ColinTalksCryptoCBBIAdapter()
 
-    general_asset_metadata = market_data_adapter.get_asset_metadata(Asset.BTC)
+    general_asset_metadata = market_data_adapter.get_asset_metadata(asset)
     fng_data = fng_source_adapter.get_fng()
-    community_sentiment_data = failover_community_sentiment_adapter.get(Asset.BTC)
-    security_metrics = coindesk_security_metric_adapter.get(Asset.BTC)
-    top_markets = drops_tab_top_markets_adapter.get(Asset.BTC)
+    community_sentiment_data = failover_community_sentiment_adapter.get(asset)
+    security_metrics = coindesk_security_metric_adapter.get(asset)
+    top_markets = drops_tab_top_markets_adapter.get(asset)
     cbbi_data = cbbi_adapter.get_cbbi()
 
     data = {
@@ -77,4 +84,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    app()

@@ -3,6 +3,9 @@ from typing import List, override, Optional
 import requests
 from ports.security_metrics import SecurityMetricPort, SecurityMetricData
 from constants.asset import Asset
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CoindeskSecurityMetricAdapter(SecurityMetricPort):
@@ -13,6 +16,7 @@ class CoindeskSecurityMetricAdapter(SecurityMetricPort):
 
     @override
     def get(self, asset: Asset) -> List[SecurityMetricData]:
+        logger.info("Fetching security metrics for %s from CoinDesk", asset.value)
         res = requests.get(
             f"https://data-api.coindesk.com/asset/v2/metadata?assets={asset.value}&asset_lookup_priority=SYMBOL&quote_asset=USD&asset_language=en-US&groups=SECURITY_METRICS&api_key={self.__api_key}",
         )

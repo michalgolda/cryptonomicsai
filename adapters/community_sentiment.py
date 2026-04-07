@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from firecrawl import FirecrawlApp, JsonConfig
 from ports.community_sentiment import CommunitySentimentPort, CommunitySentimentData
 from constants.asset import Asset, AssetName
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class FirecrawlExtractionSchema(BaseModel):
@@ -17,6 +20,7 @@ class CoinMarketCapCommunitySentimentAdapter(CommunitySentimentPort):
         self.__firecrawl = firecrawl
 
     def get(self, asset: Asset) -> CommunitySentimentData:
+        logger.info("Fetching community sentiment for %s from CoinMarketCap", asset.value)
         json_config = JsonConfig(schema=FirecrawlExtractionSchema)
         extraction_result = self.__firecrawl.scrape_url(
             url=f"https://coinmarketcap.com/currencies/{asset.value.lower()}/",
@@ -39,6 +43,7 @@ class CoinGeckoCommunitySentimentAdapter(CommunitySentimentPort):
 
     @override
     def get(self, asset: Asset) -> CommunitySentimentData:
+        logger.info("Fetching community sentiment for %s from CoinGecko", asset.value)
         asset_name = self.__get_asset_name(asset)
         res = requests.get(
             f"https://www.coingecko.com/sentiment_votes/voted_coin_today?api_symbol={asset_name}"
@@ -60,7 +65,8 @@ class FailoverCommunitySentimentAdapter(CommunitySentimentPort):
         for adapter in self.__adapters:
             try:
                 return adapter.get(asset)
-            except Exception as _:
+            except Exception as e:
+                logger.warning("%s failed: %s", type(adapter).__name__, e)
                 continue
 
         raise ValueError("All provided adapters failed.")
